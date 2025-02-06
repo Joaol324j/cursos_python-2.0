@@ -6,6 +6,8 @@
     <title>FastAPI com Jinja2</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
     <script>
+        let editingCursoId = null;  
+
         async function fetchCursos() {
             const token = localStorage.getItem("token");
 
@@ -38,14 +40,19 @@
             const time = document.getElementById("time").value;
             const token = localStorage.getItem("token");
 
+            const body = JSON.stringify({ name, description, time: parseInt(time) });
+
+            const url = editingCursoId ? `/cursos/${editingCursoId}` : "/cursos/";
+            const method = editingCursoId ? "PUT" : "POST";
+
             try {
-                const response = await fetch("/cursos/", {
-                    method: "POST",
+                const response = await fetch(url, {
+                    method: method,
                     headers: { 
                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${token}`
                     },
-                    body: JSON.stringify({ name, description, time: parseInt(time) }),
+                    body: body,
                 });
 
                 if (response.ok) {
@@ -57,6 +64,51 @@
             } catch (error) {
                 console.error("Erro ao salvar curso:", error);
             }
+        }
+
+        function renderCursos(cursos) {
+            const tableBody = document.getElementById("cursosTableBody");
+            tableBody.innerHTML = "";
+
+            cursos.forEach((curso) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <th scope="row">${curso.id}</th>
+                    <td>${curso.name}</td>
+                    <td>${curso.description}</td>
+                    <td>${curso.time}</td>
+                    <td>
+                        <button class="btn btn-warning ms-1" onclick="editCurso(${curso.id})">Editar</button>
+                        <button class="btn btn-danger ms-1" onclick="deleteCurso(${curso.id})">Excluir</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function editCurso(cursoId) {
+            const token = localStorage.getItem("token");
+
+            fetch(`/cursos/${cursoId}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+            .then(response => response.json())
+            .then(curso => {
+                editingCursoId = cursoId;
+                document.getElementById("name").value = curso.name;
+                document.getElementById("description").value = curso.description;
+                document.getElementById("time").value = curso.time;
+                document.getElementById("submitButton").textContent = "Atualizar"; 
+            })
+            .catch(error => console.error("Erro ao carregar curso para edição:", error));
+        }
+
+        function clearForm() {
+            document.getElementById("name").value = "";
+            document.getElementById("description").value = "";
+            document.getElementById("time").value = "";
+            editingCursoId = null;
+            document.getElementById("submitButton").textContent = "Adicionar";  
         }
 
         async function deleteCurso(cursoId) {
@@ -76,25 +128,6 @@
             } catch (error) {
                 console.error("Erro ao deletar curso:", error);
             }
-        }
-
-        function renderCursos(cursos) {
-            const tableBody = document.getElementById("cursosTableBody");
-            tableBody.innerHTML = "";
-
-            cursos.forEach((curso) => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <th scope="row">${curso.id}</th>
-                    <td>${curso.name}</td>
-                    <td>${curso.description}</td>
-                    <td>${curso.time}</td>
-                    <td>
-                        <button class="btn btn-danger ms-1" onclick="deleteCurso(${curso.id})">Excluir</button>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
         }
 
         function logout() {
