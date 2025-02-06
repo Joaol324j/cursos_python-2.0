@@ -8,6 +8,9 @@ from starlette.requests import Request
 from app.models import Base
 from app.database import engine
 from app.routes import courses
+from app.routes import auth
+from app.routes import register
+from app.routes import user
 
 Base.metadata.create_all(bind=engine)
 
@@ -22,6 +25,9 @@ app.add_middleware(
 )
 
 app.include_router(courses.router, prefix="/cursos", tags=["Cursos"])
+app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+app.include_router(register.router, prefix="/register", tags=["Register"])
+# app.include_router(user.router, prefix="/user", tags=["User"])
 
 templates = Jinja2Templates(directory="app/templates")
 
@@ -35,3 +41,15 @@ async def read_root(request: Request, db: Session = Depends(get_db)):
             "index.html",
             {"request": request, "todo_list": [], "error": "Erro ao buscar cursos."}
         )
+    
+@app.get("/login")
+async def read_root(request: Request, db: Session = Depends(get_db)):
+    try:
+        cursos = crud.get_items(db)
+        return templates.TemplateResponse("login.html", {"request": request, "todo_list": cursos})
+    except Exception as e:
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request, "todo_list": [], "error": "Erro ao buscar cursos."}
+        )
+
