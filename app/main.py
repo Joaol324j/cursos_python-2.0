@@ -10,7 +10,6 @@ from app.database import engine
 from app.routes import courses
 from app.routes import auth
 from app.routes import register
-from app.routes import user
 
 Base.metadata.create_all(bind=engine)
 
@@ -30,19 +29,8 @@ app.include_router(register.router, prefix="/register", tags=["Register"])
 # app.include_router(user.router, prefix="/user", tags=["User"])
 
 templates = Jinja2Templates(directory="app/templates")
-
-@app.get("/")
-async def read_root(request: Request, db: Session = Depends(get_db)):
-    try:
-        cursos = crud.get_items(db)
-        return templates.TemplateResponse("index.html", {"request": request, "todo_list": cursos})
-    except Exception as e:
-        return templates.TemplateResponse(
-            "index.html",
-            {"request": request, "todo_list": [], "error": "Erro ao buscar cursos."}
-        )
     
-@app.get("/login")
+@app.get("/")
 async def read_root(request: Request, db: Session = Depends(get_db)):
     try:
         cursos = crud.get_items(db)
@@ -52,4 +40,26 @@ async def read_root(request: Request, db: Session = Depends(get_db)):
             "index.html",
             {"request": request, "todo_list": [], "error": "Erro ao buscar cursos."}
         )
+
+@app.get("/home")
+async def read_root(request: Request, db: Session = Depends(get_db)):
+    try:
+        cursos = crud.get_items(db)
+        return templates.TemplateResponse("index.html", {"request": request, "todo_list": cursos})
+    except Exception as e:
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request, "todo_list": [], "error": "Erro ao buscar cursos."}
+        )
+
+@app.get("/register")
+async def read_root(request: Request, db: Session = Depends(get_db)):
+    try:
+        cursos = crud.get_items(db)
+        return templates.TemplateResponse("register.html", {"request": request, "todo_list": cursos})
+    except Exception as e:
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request, "todo_list": [], "error": "Erro ao buscar cursos."}
+        )    
 
